@@ -9,10 +9,10 @@ import (
 	"time"
 )
 
-var (
-	database *db.Database
+type Server struct {
+	database db.Database
 	router   *mux.Router
-)
+}
 
 func quickDate(year, month, day int) time.Time {
 	// TODO manejo de errores
@@ -47,10 +47,10 @@ func (p *integerParser) parse(s string) int {
 	return n
 }
 
-func studentsHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) studentsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		b, err := json.Marshal(database.All())
+		b, err := json.Marshal(server.database.All())
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -88,7 +88,7 @@ func studentsHandler(w http.ResponseWriter, r *http.Request) {
 			Birthday: quickDate(year, month, day),
 		}
 
-		ok := database.Insert(&s)
+		ok := server.database.Insert(&s)
 		if ok {
 			w.Header().Add("Location", "/students/"+strconv.Itoa(id))
 			w.WriteHeader(http.StatusCreated)
@@ -104,7 +104,7 @@ func studentsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func studentHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) studentHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		values := mux.Vars(r)
@@ -125,11 +125,17 @@ func studentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Serve() {
-	router = mux.NewRouter()
-	database = db.NewDatabase()
+func (server *Server) Serve(db db.Database) {
+	server.router = mux.NewRouter()
+	server.database = db
 
-	router.HandleFunc("/students", studentsHandler)
-	router.HandleFunc("/students/{id}", studentHandler)
-	http.ListenAndServe(":8080", router)
+	server.router.HandleFunc("/students", func(w http.ResponseWriter, r *http.Request) {
+		server.studentsHandler(w, r)
+	})
+
+	server.router.HandleFunc("/students/{id}", func(w http.ResponseWriter, r *http.Request) {
+		server.studentHandler(w, r)
+	})
+
+	http.ListenAndServe(":8080", server.router)
 }

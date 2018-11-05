@@ -9,7 +9,7 @@ import (
 	Database database. Part of Go Bootcamp
 */
 
-type Database struct {
+type FileDatabase struct {
 	contents map[int]*Student
 	mutex    sync.RWMutex
 }
@@ -21,11 +21,11 @@ type Student struct {
 	Birthday time.Time
 }
 
-func NewDatabase() *Database {
-	return &Database{contents: make(map[int]*Student)}
+func NewFileDatabase() *FileDatabase {
+	return &FileDatabase{contents: make(map[int]*Student)}
 }
 
-func (o *Database) Insert(s *Student) bool {
+func (o *FileDatabase) Insert(s *Student) bool {
 	if s == nil {
 		return false
 	}
@@ -41,7 +41,7 @@ func (o *Database) Insert(s *Student) bool {
 
 }
 
-func (o *Database) Delete(s *Student) {
+func (o *FileDatabase) Delete(s *Student) {
 	if s == nil {
 		return
 	}
@@ -50,7 +50,7 @@ func (o *Database) Delete(s *Student) {
 	o.mutex.Unlock()
 }
 
-func (o *Database) Update(id int, s *Student) {
+func (o *FileDatabase) Update(id int, s *Student) {
 	if s == nil {
 		return
 	}
@@ -66,14 +66,14 @@ func (o *Database) Update(id int, s *Student) {
 	o.mutex.Unlock()
 }
 
-func (o *Database) Lookup(id int) (s *Student, ok bool) {
+func (o *FileDatabase) Lookup(id int) (s *Student, ok bool) {
 	o.mutex.RLock()
 	s, ok = o.contents[id]
 	o.mutex.RUnlock()
 	return
 }
 
-func (o *Database) All() []*Student {
+func (o *FileDatabase) All() []*Student {
 	o.mutex.RLock()
 	defer o.mutex.RUnlock()
 	v := make([]*Student, 0, len(o.contents))
@@ -83,8 +83,8 @@ func (o *Database) All() []*Student {
 	return v
 }
 
-func Save(o *Database) {
+func (o *FileDatabase) Save() {
 }
 
-func Restore(o *Database) {
+func (o *FileDatabase) Restore() {
 }

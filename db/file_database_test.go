@@ -9,7 +9,7 @@ func quickDate(year, month, day int) time.Time {
 }
 
 func TestInsert(t *testing.T) {
-	o := NewDatabase()
+	o := NewFileDatabase()
 	elems := []Student{
 		{1231232, "María", "Eufrasia", quickDate(1923, 12, 2)},
 		{1636733, "José", "Ridículo", quickDate(1967, 3, 3)},
