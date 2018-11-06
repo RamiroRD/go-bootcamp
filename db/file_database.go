@@ -1,90 +1,85 @@
 package db
 
 import (
+	"github.com/ramirord/go-bootcamp/util"
 	"sync"
-	"time"
 )
 
 /*
-	Database database. Part of Go Bootcamp
+	Simple key-value database.
 */
-
 type FileDatabase struct {
-	contents map[int]*Student
+	contents map[string]string
 	mutex    sync.RWMutex
 }
 
-type Student struct {
-	Id       int
-	Name     string
-	LastName string
-	Birthday time.Time
-}
-
 func NewFileDatabase() *FileDatabase {
-	return &FileDatabase{contents: make(map[int]*Student)}
+	return &FileDatabase{contents: make(map[string]string)}
 }
 
-func (o *FileDatabase) Insert(s *Student) bool {
-	if s == nil {
+func (d *FileDatabase) Insert(key, value string) bool {
+	if util.ContainsEmpty(key, value) {
 		return false
 	}
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
 
-	_, ok := o.contents[s.Id]
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+
+	_, ok := d.contents[key]
 	if ok {
 		return false
 	}
-	o.contents[s.Id] = s
+	d.contents[key] = value
 	return true
 
 }
 
-func (o *FileDatabase) Delete(s *Student) {
-	if s == nil {
-		return
-	}
-	o.mutex.Lock()
-	delete(o.contents, s.Id)
-	o.mutex.Unlock()
+func (d *FileDatabase) Delete(key string) bool {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	_, ok := d.contents[key]
+	delete(d.contents, key)
+	return ok
 }
 
-func (o *FileDatabase) Update(id int, s *Student) {
-	if s == nil {
-		return
+func (d *FileDatabase) Update(key, value string) bool {
+	if util.ContainsEmpty(key, value) {
+		return false
 	}
-	o.mutex.Lock()
-	t, ok := o.contents[id]
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+
+	_, ok := d.contents[key]
 	if !ok {
-		return
+		return false
+	} else {
+		delete(d.contents, key)
+		d.contents[key] = value
+		return true
 	}
-
-	t.Name = s.Name
-	t.LastName = s.LastName
-	t.Birthday = s.Birthday
-	o.mutex.Unlock()
 }
 
-func (o *FileDatabase) Lookup(id int) (s *Student, ok bool) {
-	o.mutex.RLock()
-	s, ok = o.contents[id]
-	o.mutex.RUnlock()
+func (d *FileDatabase) Lookup(key string) (v string, ok bool) {
+	d.mutex.RLock()
+	v, ok = d.contents[key]
+	d.mutex.RUnlock()
 	return
 }
 
-func (o *FileDatabase) All() []*Student {
-	o.mutex.RLock()
-	defer o.mutex.RUnlock()
-	v := make([]*Student, 0, len(o.contents))
-	for _, value := range o.contents {
+func (d *FileDatabase) All() []string {
+	d.mutex.RLock()
+	defer d.mutex.RUnlock()
+	v := make([]string, 0, len(d.contents))
+	for _, value := range d.contents {
 		v = append(v, value)
 	}
 	return v
 }
 
-func (o *FileDatabase) Save() {
+func (d *FileDatabase) Save() {
+	// TODO implementar
 }
 
-func (o *FileDatabase) Restore() {
+func (d *FileDatabase) Restore() {
+	// TODO implementar
 }

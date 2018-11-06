@@ -1,9 +1,9 @@
 package db
 
 type Database interface {
-	Insert(s *Student) bool
-	Delete(s *Student)
-	Update(id int, s *Student)
-	Lookup(id int) (s *Student, ok bool)
-	All() []*Student
+	Insert(key, value string) bool
+	Delete(key string) bool
+	Update(key string, value string) bool
+	Lookup(key string) (v string, ok bool)
+	All() []string
 }
